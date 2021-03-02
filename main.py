@@ -6,26 +6,39 @@ import requests
 import textwrap
 import time
 
+url_chat_webhook = 'https://chat.googleapis.com/v1/spaces/AAAALKak-Us/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=4SRdfiEDQgPB2S1rrC6SozQ96UG7XrV3NarKDzj3Z8I%3D'
+
 url_cust_id = 'https://lista.mercadolivre.com.br/_CustId_70565267'
 
 urls = ['https://produto.mercadolivre.com.br/MLB-1600460311',
         'https://produto.mercadolivre.com.br/MLB-1601403125',
-        'https://produto.mercadolivre.com.br/MLB-1436130428']
+        'https://produto.mercadolivre.com.br/MLB-1436130428',
+        'https://produto.mercadolivre.com.br/MLB-1619225228',
+        'https://produto.mercadolivre.com.br/MLB-1806750212']
 
 expected_title = ['Peças De Xadrez Germam Staunton + Damas Extras 10 Cm',
                   'Peças De Xadrez Rei 10 Cm + Damas Extras German Staunton',
-                  'Peças De Xadrez Germam Staunton Damas Extras Rei 10 Cm']
+                  'Peças De Xadrez Germam Staunton Damas Extras Rei 10 Cm',
+                  'Peças De Xadrez Stauton Damas Extras Rei 10 Cm Chumbadas',
+                  'Peças De Xadrez Rei 10 Cm German Staunton Madeira Jacaranda']
 expected_price = ['4.500',
                   '5.000',
+                  '4.500',
+                  '4.500',
                   '4.500']
 expected_description = ['Peças de xadrez réplica German Staunton%Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre',
                         'Peças de xadrez réplica German Staunton%Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre',
-                        'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre%TABULEIRO NÃO ACOMPANHA AS PECAS ! %VENDIDO SEPARADO POR 500,00 OU COMPLETO COM PECAS POR 950,00%O VALOR DE 450,00 É APENAS DAS PEÇAS CHUMBADAS COM 34 PEÇAS , COM FELTRO , MODELO FIDE GERMAM DAS FOTOS 1 E 2']
+                        'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre%TABULEIRO NÃO ACOMPANHA AS PECAS ! %VENDIDO SEPARADO POR 500,00 OU COMPLETO COM PECAS POR 950,00%O VALOR DE 450,00 É APENAS DAS PEÇAS CHUMBADAS COM 34 PEÇAS , COM FELTRO , MODELO FIDE GERMAM DAS FOTOS 1 E 2',
+                        'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre massaranduba negra ou braúna e madeira pau-marfim nobre%A cor preta das peças são cores naturais da madeira , NÃO uso tintas',
+                        'Peças de xadrez German Staunton em madeira Jacaranda caviuna e paumarfim , com damas extras , chumbadas, com feltro e acabamento em verniz PU automotivo.%Rei 10 cm por 3,9 cm de base%Fabricado uma a uma %Fabricado no Brasil 100% nacional, com madeiras nobres/raras']
 expected_last_question = ['Qual o preço certo?',
                           'Alguma previsão?',
-                          'Boa tarde, já tem um completo peças e tabuleiro?']
+                          'Boa tarde, já tem um completo peças e tabuleiro?',
+                          'Gostaria de encomendar, o tamanho das peças são os mesmos do modelo original ? Qual procedimento para a encomenda ?',
+                          'Alguma previsão para estas peças estarem disponíveis?']
 
 sleep_seconds = 6
+truncate_description_width = 80
 
 xpath_title = '//*[@id="root-app"]/div/div[3]/div/div[2]/div[1]/div/div[1]/div/div[2]/h1'
 xpath_price = '//*[@id="root-app"]/div/div[3]/div/div[2]/div[1]/div/div[2]/div/div[1]/div/span/span[2]'
@@ -53,6 +66,7 @@ def main():
 
 def update():
     index_ad = 0
+    print(str(datetime.datetime.now()))
     for url in urls:
         r = requests.get(url)
 
@@ -67,7 +81,8 @@ def update():
             price = tree.xpath(xpath_price + '/text()')[0]
             description_array = tree.xpath(xpath_description + '/text()')
             description = "%".join(description_array)
-            last_question = tree.xpath(xpath_last_question + '/text()')[0]
+            last_question_array = tree.xpath(xpath_last_question + '/text()')
+            last_question = "%".join(last_question_array)
         except:
             title = ''
             price = ''
@@ -79,10 +94,7 @@ def update():
 
 
 def report(url, index_ad, title, price, description, last_question):
-    print('Current values on ' + str(datetime.datetime.now()))
-    print(url)
-    print("Ad index: " + str(index_ad))
-    print()
+    print('[' + str(index_ad) + ']: ' + url)
 
     if title == '' or price == '' or description == '' or last_question == '':
         print('Empty values. Skipping...')
@@ -117,10 +129,8 @@ def report(url, index_ad, title, price, description, last_question):
         print('Original values:')
         print(title)
         print(price)
-        print(textwrap.shorten(description, width=80))
+        print(textwrap.shorten(description, width=truncate_description_width))
         print(last_question)
-
-    print('=========================================================')
 
 
 def notify(url, title, text):
@@ -131,7 +141,6 @@ def notify(url, title, text):
     except:
         print("Error notifying MacOS")
 
-    webhook_url = 'https://chat.googleapis.com/v1/spaces/AAAALKak-Us/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=4SRdfiEDQgPB2S1rrC6SozQ96UG7XrV3NarKDzj3Z8I%3D'
     message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
 
     text = '*{}* `{}` <{}|{}!>'.format(title, text, url, url)
@@ -143,7 +152,7 @@ def notify(url, title, text):
     chat_response_payload = json.dumps(chat_response_payload_json, indent=2)
 
     response = requests.post(
-        webhook_url, data=chat_response_payload, headers=message_headers)
+        url_chat_webhook, data=chat_response_payload, headers=message_headers)
 
 
 if __name__ == '__main__':
