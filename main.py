@@ -79,19 +79,14 @@ def update():
 
 
 def report(url, index_ad, title, price, description, last_question):
-    if title == '' or price == ''or description == '' or last_question == '':
-        print('Empty values. Skipping...')
-        return
-
     print('Current values on ' + str(datetime.datetime.now()))
     print(url)
     print("Ad index: " + str(index_ad))
     print()
-    print(title)
-    print(price)
-    print(textwrap.shorten(description, width=80))
-    print(last_question)
-    print()
+
+    if title == '' or price == '' or description == '' or last_question == '':
+        print('Empty values. Skipping...')
+        return
 
     has_changed = False
     if title != expected_title[index_ad]:
@@ -116,6 +111,15 @@ def report(url, index_ad, title, price, description, last_question):
 
     if not has_changed:
         print('Nothing changed.')
+    else:
+        print()
+        print('--------------------------')
+        print('Original values:')
+        print(title)
+        print(price)
+        print(textwrap.shorten(description, width=80))
+        print(last_question)
+
     print('=========================================================')
 
 
@@ -127,7 +131,7 @@ def notify(url, title, text):
     except:
         print("Error notifying MacOS")
 
-    webhook_url = 'https://chat.googleapis.com/v1/spaces/AAAAzUe025g/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=1bOiHa3h2xSzCVz-VMG95H5ToluGhuwC-qpnpWy6TM8%3D'
+    webhook_url = 'https://chat.googleapis.com/v1/spaces/AAAALKak-Us/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=4SRdfiEDQgPB2S1rrC6SozQ96UG7XrV3NarKDzj3Z8I%3D'
     message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
 
     text = '*{}* `{}` <{}|{}!>'.format(title, text, url, url)
