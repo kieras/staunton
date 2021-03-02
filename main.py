@@ -62,18 +62,27 @@ def update():
                    'Error: ' + str(r.status_code))
 
         tree = html.fromstring(r.content)
-
-        title = tree.xpath(xpath_title + '/text()')[0]
-        price = tree.xpath(xpath_price + '/text()')[0]
-        description_array = tree.xpath(xpath_description + '/text()')
-        description = "%".join(description_array)
-        last_question = tree.xpath(xpath_last_question + '/text()')[0]
+        try:
+            title = tree.xpath(xpath_title + '/text()')[0]
+            price = tree.xpath(xpath_price + '/text()')[0]
+            description_array = tree.xpath(xpath_description + '/text()')
+            description = "%".join(description_array)
+            last_question = tree.xpath(xpath_last_question + '/text()')[0]
+        except:
+            title = ''
+            price = ''
+            description = ''
+            last_question = ''
 
         report(url, index_ad, title, price, description, last_question)
         index_ad = index_ad + 1
 
 
 def report(url, index_ad, title, price, description, last_question):
+    if title == '' or price == ''or description == '' or last_question == '':
+        print('Empty values. Skipping...')
+        return
+
     print('Current values on ' + str(datetime.datetime.now()))
     print(url)
     print("Ad index: " + str(index_ad))
