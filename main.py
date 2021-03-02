@@ -143,7 +143,7 @@ def notify(url, title, text):
 
     message_headers = {'Content-Type': 'application/json; charset=UTF-8'}
 
-    text = '*{}* `{}` <{}|{}!>'.format(title, text, url, url)
+    text = '`{}` *{}* <{}|{}!>'.format(title, text, url, url)
 
     chat_response_payload_json = {
         'text': text
