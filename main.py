@@ -60,8 +60,11 @@ def main():
                 time.sleep(sleep_seconds)
         except Exception as e:
             print('An exception occured: ' + str(e))
-            notify(url_cust_id,
-                   'Staunton exception!', 'An exception occured: ' + str(e))
+            try:
+                notify(url_cust_id,
+                    'Staunton exception!', 'An exception occured: ' + str(e))
+            except Exception as e2:
+                print('Error sending exception notification.' + str(e2))
             time.sleep(sleep_seconds)
 
 def update():
@@ -105,6 +108,7 @@ def report(url, index_ad, title, price, description, last_question):
         has_changed = True
         print('Title changed! New value: ' + title)
         notify(url, 'Title changed!', 'New value: ' + title)
+        expected_title[index_ad] = title
 
     if price != expected_price[index_ad]:
         has_changed = True
@@ -115,11 +119,13 @@ def report(url, index_ad, title, price, description, last_question):
         has_changed = True
         print('Description changed! New value: ' + description)
         notify(url, 'Description changed!', 'New value: ' + description)
+        expected_description[index_ad] = description
 
     if last_question != expected_last_question[index_ad]:
         has_changed = True
         print('Last question changed! New value: ' + last_question)
         notify(url, 'Last question changed!', 'New value: ' + last_question)
+        expected_last_question[index_ad] = last_question
 
     if not has_changed:
         print('Nothing changed.')
