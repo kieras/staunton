@@ -31,10 +31,10 @@ expected_description = ['Peças de xadrez réplica German Staunton%Mais uma repr
                         'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre%TABULEIRO NÃO ACOMPANHA AS PECAS ! %VENDIDO SEPARADO POR 500,00 OU COMPLETO COM PECAS POR 950,00%O VALOR DE 450,00 É APENAS DAS PEÇAS CHUMBADAS COM 34 PEÇAS , COM FELTRO , MODELO FIDE GERMAM DAS FOTOS 1 E 2',
                         'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre massaranduba negra ou braúna e madeira pau-marfim nobre%A cor preta das peças são cores naturais da madeira , NÃO uso tintas',
                         'Peças de xadrez German Staunton em madeira Jacaranda caviuna e paumarfim , com damas extras , chumbadas, com feltro e acabamento em verniz PU automotivo.%Rei 10 cm por 3,9 cm de base%Fabricado uma a uma %Fabricado no Brasil 100% nacional, com madeiras nobres/raras']
-expected_last_question = ['Qual o preço certo?',
+expected_last_question = ['Como fazer a compra com o valor correto?',
                           'Alguma previsão?',
-                          'Boa tarde, já tem um completo peças e tabuleiro?',
-                          'Gostaria de encomendar, o tamanho das peças são os mesmos do modelo original ? Qual procedimento para a encomenda ?',
+                          'Opa Camarada! O mercado livre enviou mensagem que ja estava disponível. Fui lá e realmente estava, mas vc esqueceu de alterar o valor para 450,00. Como faço? Compro por 4.500,00 depois vc devolve a diferença? É isso? Ou vc envia um link direto pra mim?',
+                          'E qual seria o valor quando prontas?',
                           'Alguma previsão para estas peças estarem disponíveis?']
 
 sleep_seconds = 6
@@ -46,6 +46,7 @@ xpath_description = '//*[@id="root-app"]/div/div[3]/div/div[1]/div[2]/div[3]/div
 xpath_last_question = '//*[@id="questions"]/div[1]/div[1]/div/div[1]/div/span'
 
 def main():
+    hour_beat = -1
     while True:
         try:
             update()
@@ -53,10 +54,20 @@ def main():
 
             # do less requests at night...
             mytime = time.localtime()
-            if mytime.tm_hour < 6 or mytime.tm_hour > 22:
+
+            if hour_beat == -1:
+                hour_beat = mytime.tm_hour
+
+            if mytime.tm_hour < 5 or mytime.tm_hour > 23:
                 print("It's night. Wait more...")
                 time.sleep(sleep_seconds*10)
+                hour_beat = mytime.tm_hour
             else:
+                if hour_beat < mytime.tm_hour:
+                    print("Sending heartbeat for hour " + str(mytime.tm_hour))
+                    notify("", "Heartbeat", "Heartbeat for hour " + str(mytime.tm_hour))
+                    hour_beat = mytime.tm_hour
+
                 time.sleep(sleep_seconds)
         except Exception as e:
             print('An exception occured: ' + str(e))
