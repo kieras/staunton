@@ -56,14 +56,16 @@ def main():
     hour_beat = -1
     while True:
         try:
-            update()
-            print('********************** Waiting... ***********************')
-
             # do less requests at night...
             mytime = datetime.datetime.now(pytz.timezone('America/Sao_Paulo'))
 
             if hour_beat == -1:
                 hour_beat = mytime.hour
+                print("Started... " + str(mytime))
+                notify(url_cust_id, "Start", "Started " + str(mytime))
+
+            update()
+            print('********************** Waiting... ***********************')
 
             if mytime.hour < 5 or mytime.hour > 23:
                 print("It's night. Wait more...")
