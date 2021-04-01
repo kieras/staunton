@@ -87,7 +87,7 @@ def main():
 
 def update():
     index_ad = 0
-    print(str(datetime.datetime.now()))
+    print(str(datetime.datetime.now(pytz.timezone('America/Sao_Paulo'))))
     for url in urls:
         r = requests.get(url)
 
