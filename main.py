@@ -2,6 +2,7 @@ from lxml import html
 import datetime
 import json
 import os
+import pytz
 import requests
 import textwrap
 import time
@@ -59,20 +60,20 @@ def main():
             print('********************** Waiting... ***********************')
 
             # do less requests at night...
-            mytime = time.localtime()
+            mytime = datetime.datetime.now(pytz.timezone('America/Sao_Paulo'))
 
             if hour_beat == -1:
-                hour_beat = mytime.tm_hour
+                hour_beat = mytime.hour
 
-            if mytime.tm_hour < 5 or mytime.tm_hour > 23:
+            if mytime.hour < 5 or mytime.hour > 23:
                 print("It's night. Wait more...")
                 time.sleep(sleep_seconds*10)
-                hour_beat = mytime.tm_hour
+                hour_beat = mytime.hour
             else:
-                if hour_beat < mytime.tm_hour:
-                    print("Sending heartbeat for hour " + str(mytime.tm_hour))
-                    notify(url_cust_id, "Heartbeat", "Heartbeat for hour " + str(mytime.tm_hour))
-                    hour_beat = mytime.tm_hour
+                if hour_beat < mytime.hour:
+                    print("Sending heartbeat for hour " + str(mytime.hour))
+                    notify(url_cust_id, "Heartbeat", "Heartbeat for hour " + str(mytime.hour))
+                    hour_beat = mytime.hour
 
                 time.sleep(sleep_seconds)
         except Exception as e:
