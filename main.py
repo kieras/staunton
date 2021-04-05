@@ -1,5 +1,6 @@
 from lxml import html
 import datetime
+import itertools
 import json
 import os
 import pytz
@@ -17,34 +18,16 @@ urls = ['https://produto.mercadolivre.com.br/MLB-1600460311',
         'https://produto.mercadolivre.com.br/MLB-1619225228',
         'https://produto.mercadolivre.com.br/MLB-1806750212']
 
-expected_title = ['Peças De Xadrez Germam Staunton + Damas Extras 10 Cm',
-                  'Peças De Xadrez Rei 10 Cm + Damas Extras German Staunton',
-                  'Peças De Xadrez Germam Staunton Damas Extras Rei 10 Cm',
-                  'Peças De Xadrez Stauton Damas Extras Rei 10 Cm Chumbadas',
-                  'Peças De Xadrez Rei 10 Cm German Staunton Madeira Jacaranda']
-expected_price = ['4.500',
-                  '5.000',
-                  '4.500',
-                  '4.500',
-                  '4.500']
-expected_description = ['Peças de xadrez réplica German Staunton%Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre',
-                        'Peças de xadrez réplica German Staunton%Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre',
-                        'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre jacaranda do cerrado e madeira pau-marfim nobre%TABULEIRO NÃO ACOMPANHA AS PECAS ! %VENDIDO SEPARADO POR 500,00 OU COMPLETO COM PECAS POR 950,00%O VALOR DE 450,00 É APENAS DAS PEÇAS CHUMBADAS COM 34 PEÇAS , COM FELTRO , MODELO FIDE GERMAM DAS FOTOS 1 E 2',
-                        'Mais uma reprodução do jogo de xadrez famoso em torneios mundiais. Este conjunto contém 34 peças (damas extras) com rei medindo 10 cm de altura e 4 cm de base. As peças são chumbadas com puro chumbo (cerca de 1,6 kg) dando mais estabilidade ao jogar Blitz. As peças são protegidas por feltro em suas bases para melhor deslisamento na superfície. As peças tem um acabamento em verniz marítimo gloss extra brilhante natural , para realçar melhor a beleza da madeira.%Peças de xadrez em madeira nobre massaranduba negra ou braúna e madeira pau-marfim nobre%A cor preta das peças são cores naturais da madeira , NÃO uso tintas',
-                        'Peças de xadrez German Staunton em madeira Jacaranda caviuna e paumarfim , com damas extras , chumbadas, com feltro e acabamento em verniz PU automotivo.%Rei 10 cm por 3,9 cm de base%Fabricado uma a uma %Fabricado no Brasil 100% nacional, com madeiras nobres/raras']
-expected_last_question = ['',
-                          '',
-                          '',
-                          '',
-                          '']
-expected_last_response = ['',
-                          '',
-                          '',
-                          '',
-                          '']
+expected_title = []
+expected_price = []
+expected_description = []
+expected_last_question = []
+expected_last_response = []
 
 sleep_seconds = 6
 truncate_description_width = 80
+
+staunton_data_file = '/tmp/staunton-data.txt'
 
 xpath_title = '//*[@id="root-app"]/div/div[3]/div/div[2]/div[1]/div/div[1]/div/div[2]/h1'
 xpath_price = '//*[@id="root-app"]/div/div[3]/div/div[2]/div[1]/div/div[2]/div/div[1]/div/span/span[2]'
@@ -52,8 +35,17 @@ xpath_description = '//*[@id="root-app"]/div/div[3]/div/div[1]/div[2]/div[3]/div
 xpath_last_question = '//*[@id="questions"]/div[1]/div[1]/div/div[1]/div/span'
 xpath_last_response = '//*[@id="questions"]/div[1]/div[1]/div/div[1]/div[2]/div/div/span'
 
+data_changed = False
+
+
 def main():
     hour_beat = -1
+    global data_changed
+
+    print("Loading data file...")
+    load_data()
+    print("Done.")
+
     while True:
         try:
             # do less requests at night...
@@ -65,6 +57,13 @@ def main():
                 notify(url_cust_id, "Start", "Started " + str(mytime))
 
             update()
+
+            if data_changed:
+                print("Saving new data file...")
+                save_data()
+                print("Done.")
+                data_changed = False
+
             print('********************** Waiting... ***********************')
 
             if mytime.hour < 5 or mytime.hour > 23:
@@ -86,6 +85,7 @@ def main():
             except Exception as e2:
                 print('Error sending exception notification.' + str(e2))
             time.sleep(sleep_seconds)
+
 
 def update():
     index_ad = 0
@@ -123,7 +123,7 @@ def update():
 def report(url, index_ad, title, price, description, last_question, last_response):
     print('[' + str(index_ad) + ']: ' + url)
 
-    if title == '' or price == '' or description == '' or last_question == '' or last_response == '':
+    if title == '' or price == '' or description == '' or last_question == '':
         print('Empty values. Skipping...')
         return
 
@@ -138,6 +138,9 @@ def report(url, index_ad, title, price, description, last_question, last_respons
         has_changed = True
         print('Price changed! New value: ' + price)
         notify(url, 'Price changed!', 'New value: ' + price)
+        price_int = int(float(price.replace(".", "")))
+        if price_int > 950:
+            expected_price[index_ad] = price
 
     if description != expected_description[index_ad]:
         has_changed = True
@@ -160,6 +163,8 @@ def report(url, index_ad, title, price, description, last_question, last_respons
     if not has_changed:
         print('Nothing changed.')
     else:
+        global data_changed
+        data_changed = True
         print()
         print('--------------------------')
         print('Original values:')
@@ -190,6 +195,67 @@ def notify(url, title, text):
 
     response = requests.post(
         url_chat_webhook, data=chat_response_payload, headers=message_headers)
+
+
+def save_data():
+    size = len(urls)
+    with open(staunton_data_file, 'w') as filehandle:
+        filehandle.writelines("%s\n" % the_value for the_value in expected_title)
+        filehandle.writelines("%s\n" % the_value for the_value in expected_price)
+        filehandle.writelines("%s\n" % the_value for the_value in expected_description)
+        filehandle.writelines("%s\n" % the_value for the_value in expected_last_question)
+        filehandle.writelines("%s\n" % the_value for the_value in expected_last_response)
+
+
+def load_data():
+    size = len(urls)
+    with open(staunton_data_file, 'r') as filehandle:
+        filecontents = filehandle.readlines()
+        idx = 0
+        for _ in itertools.repeat(None, size):
+            try:
+                # get the line content and remove linebreak which is the last char of the string
+                content = filecontents[idx][:-1]
+                expected_title.append(content)
+                idx += 1
+            except:
+                expected_title.append('')
+
+        for _ in itertools.repeat(None, size):
+            try:
+                # get the line content and remove linebreak which is the last char of the string
+                content = filecontents[idx][:-1]
+                expected_price.append(content)
+                idx += 1
+            except:
+                expected_price.append('')
+
+        for _ in itertools.repeat(None, size):
+            try:
+                # get the line content and remove linebreak which is the last char of the string
+                content = filecontents[idx][:-1]
+                expected_description.append(content)
+                idx += 1
+            except:
+                expected_description.append('')
+
+        for _ in itertools.repeat(None, size):
+            try:
+                # get the line content and remove linebreak which is the last char of the string
+                content = filecontents[idx][:-1]
+                expected_last_question.append(content)
+                idx += 1
+            except:
+                expected_last_question.append('')
+
+        for _ in itertools.repeat(None, size):
+            try:
+                # get the line content and remove linebreak which is the last char of the string
+                content = filecontents[idx][:-1]
+                expected_last_response.append(content)
+                idx += 1
+            except:
+                expected_last_response.append('')
 
 
 if __name__ == '__main__':
